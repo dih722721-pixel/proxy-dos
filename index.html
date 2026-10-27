@@ -47,7 +47,7 @@
 <body>
 
 <div id="terminal">
-    <div id="output">Proxy-DOS Multi-Boot Loader v3.0
+    <div id="output">Proxy-DOS Multi-Boot Loader v3.1
 (C)Copyright dih722721-pixel Repository Archive Corp.
 
 Available DOS Versions in Repository:
@@ -68,83 +68,128 @@ When inside an environment, type DIR to pull the real folder files dynamically f
 </div>
 
 <script>
-    cmdInput.addEventListener('keydown', async function(e) {
-    if (e.key === 'Enter') {
-        let input = this.value.trim();
-        let args = input.split(' ');
-        let command = args[0].toLowerCase();
-        let target = args[1];
-        
-        printLine(currentSystem + ":\\>" + input);
-        this.value = '';
-        
-        // --- STANDARD COMMANDS ---
-        if (command === 'help') {
-            printLine("Available system functions:\n  BOOT [1-5] - Mount and boot a specific DOS build\n  DIR        - Read active environment storage files\n  CLS        - Clear standard out text buffer\n  SYSTEM     - Return to global boot loader manager");
-        } else if (command === 'cls') {
-            outputDiv.innerHTML = '';
-        } else if (command === 'system') {
-            currentSystem = "SYSTEM";
-            currentFolder = "";
-            promptSpan.innerText = "SYSTEM:\\>";
-            printLine("Returned to standard System Management Console. Choose options 1 through 5.");
-        } else if (command === 'dir') {
-            if (currentSystem === "SYSTEM") {
-                printLine("Directory of SYSTEM:\\\n\n[DIR]    .readmes\n[DIR]    v1.25\n[DIR]    v2.0\n[DIR]    v4.0\n[DIR]    v4.0-ozzie\n[FILE]   LICENSE\n[FILE]   README.md\n[FILE]   SECURITY.md");
-            } else if (currentSystem === "UBDOS") {
-                printLine("Directory of UB-DOS:\\\n\n[FILE]   COMMAND.COM     23,420 bytes\n[FILE]   GAMES.EXE       45,110 bytes\n[FILE]   PROXY.SYS       12,890 bytes\n[FILE]   AUTOEXEC.BAT    128 bytes\n\n4 File(s) loaded into unblocked cache pools.");
-            } else {
-                printLine("Reading repository path from GitHub API: /" + currentFolder + "...");
-                await fetchGitHubDir(currentFolder);
-            }
-        } else if (command === 'boot') {
-            if (target === '1') {
-                currentSystem = "MSDOS125";
-                currentFolder = "v1.25";
-                promptSpan.innerText = "A:\\>";
-                printLine("Booting MS-DOS v1.25...\nMicrosoft(R) MS-DOS(R) Version 1.25\nType DIR to read real v1.25 files.");
-            } else if (target === '2') {
-                currentSystem = "MSDOS200";
-                currentFolder = "v2.0";
-                promptSpan.innerText = "A:\\>";
-                printLine("Booting MS-DOS v2.0...\nMicrosoft(R) MS-DOS(R) Version 2.00\nType DIR to read real v2.0 files.");
-            } else if (target === '3') {
-                currentSystem = "MSDOS400";
-                currentFolder = "v4.0";
-                promptSpan.innerText = "C:\\>";
-                printLine("Booting IBM MS-DOS v4.0...\nIBM DOS Version 4.00\nType DIR to read real v4.0 files.");
-            } else if (target === '4') {
-                currentSystem = "OZZIEDOS";
-                currentFolder = "v4.0-ozzie";
-                promptSpan.innerText = "C:\\>";
-                printLine("Booting MS-DOS Multitasking v4.0 (Ozzie Build)...\nType DIR to read real v4.0-ozzie files.");
-            } else if (target === '5') {
-                currentSystem = "UBDOS";
-                currentFolder = "";
-                promptSpan.innerText = "UB-DOS:\\>";
-                printLine("=== WELCOME TO UB DOS v1.0 ===\nCustom Unblocked Network OS Terminal Build\nType GAMES to launch portal links or DIR for system diagnostics.");
-            } else {
-                printLine("Invalid selection. Syntax: BOOT [1-5]");
-            }
-        } else if (currentSystem === "UBDOS" && command === 'games') {
-            printLine("Opening your premium unblocked deployment portal link database...\n[Routing secure connections via Netlify and Vercel endpoints]");
-        
-        // --- SECRET EASTER EGGS ---
-        } else if (command === 'install') {
-            printLine("bro there's nothing to install");
-        } else if (command === '12') {
-            printLine("12 hours on the clock... the grind never stops! ⏳");
-            
-        } else if (input === '') {
-            // Return carriage
-        } else {
-            printLine("Bad command or file name: " + input);
-        }
-        
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-});
+    const cmdInput = document.getElementById('cmd');
+    const outputDiv = document.getElementById('output');
+    const promptSpan = document.getElementById('prompt');
+    
+    let currentSystem = "SYSTEM";
+    let currentFolder = "";
+    const repoUser = "dih722721-pixel";
+    const repoName = "proxy-dos";
 
+    document.addEventListener('click', () => cmdInput.focus());
+
+    cmdInput.addEventListener('keydown', async function(e) {
+        if (e.key === 'Enter') {
+            let input = this.value.trim();
+            if (input === '') {
+                printLine(currentSystem + ":\\>");
+                this.value = '';
+                return;
+            }
+
+            let args = input.split(' ');
+            let command = args[0].toLowerCase();
+            let target = args[1] ? args[1] : "";
+            
+            printLine(currentSystem + ":\\>" + input);
+            this.value = '';
+            
+            // --- SECRET EASTER EGGS ---
+            if (command === 'install') {
+                printLine("bro there's nothing to install");
+            } else if (command === '12') {
+                printLine("12 hours on the clock... the grind never stops! ⏳");
+            
+            // --- STANDARD COMMANDS ---
+            } else if (command === 'help') {
+                printLine("Available system functions:\n  BOOT [1-5] - Mount and boot a specific DOS build\n  DIR        - Read active environment storage files\n  CLS        - Clear standard out text buffer\n  SYSTEM     - Return to global boot loader manager");
+            } else if (command === 'cls') {
+                outputDiv.innerHTML = '';
+            } else if (command === 'system') {
+                currentSystem = "SYSTEM";
+                currentFolder = "";
+                promptSpan.innerText = "SYSTEM:\\>";
+                printLine("Returned to standard System Management Console. Choose options 1 through 5.");
+            } else if (command === 'dir') {
+                if (currentSystem === "SYSTEM") {
+                    printLine("Directory of SYSTEM:\\\n\n[DIR]    .readmes\n[DIR]    v1.25\n[DIR]    v2.0\n[DIR]    v4.0\n[DIR]    v4.0-ozzie\n[FILE]   LICENSE\n[FILE]   README.md\n[FILE]   SECURITY.md");
+                } else if (currentSystem === "UBDOS") {
+                    printLine("Directory of UB-DOS:\\\n\n[FILE]   COMMAND.COM     23,420 bytes\n[FILE]   GAMES.EXE       45,110 bytes\n[FILE]   PROXY.SYS       12,890 bytes\n[FILE]   AUTOEXEC.BAT    128 bytes\n\n4 File(s) loaded into unblocked cache pools.");
+                } else {
+                    printLine("Reading repository path from GitHub API: /" + currentFolder + "...");
+                    await fetchGitHubDir(currentFolder);
+                }
+            } else if (command === 'boot') {
+                if (target === '1') {
+                    currentSystem = "MSDOS125";
+                    currentFolder = "v1.25";
+                    promptSpan.innerText = "A:\\>";
+                    printLine("Booting MS-DOS v1.25...\nMicrosoft(R) MS-DOS(R) Version 1.25\nType DIR to read real v1.25 files.");
+                } else if (target === '2') {
+                    currentSystem = "MSDOS200";
+                    currentFolder = "v2.0";
+                    promptSpan.innerText = "A:\\>";
+                    printLine("Booting MS-DOS v2.0...\nMicrosoft(R) MS-DOS(R) Version 2.00\nType DIR to read real v2.0 files.");
+                } else if (target === '3') {
+                    currentSystem = "MSDOS400";
+                    currentFolder = "v4.0";
+                    promptSpan.innerText = "C:\\>";
+                    printLine("Booting IBM MS-DOS v4.0...\nIBM DOS Version 4.00\nType DIR to read real v4.0 files.");
+                } else if (target === '4') {
+                    currentSystem = "OZZIEDOS";
+                    currentFolder = "v4.0-ozzie";
+                    promptSpan.innerText = "C:\\>";
+                    printLine("Booting MS-DOS Multitasking v4.0 (Ozzie Build)...\nType DIR to read real v4.0-ozzie files.");
+                } else if (target === '5') {
+                    currentSystem = "UBDOS";
+                    currentFolder = "";
+                    promptSpan.innerText = "UB-DOS:\\>";
+                    printLine("=== WELCOME TO UB DOS v1.0 ===\nCustom Unblocked Network OS Terminal Build\nType GAMES to launch portal links or DIR for system diagnostics.");
+                } else {
+                    printLine("Invalid selection. Syntax: BOOT [1-5]");
+                }
+            } else if (currentSystem === "UBDOS" && command === 'games') {
+                printLine("Opening your premium unblocked deployment portal link database...\n[Routing secure connections via Netlify and Vercel endpoints]");
+            } else {
+                printLine("Bad command or file name: " + input);
+            }
+            
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    });
+
+    async function fetchGitHubDir(path) {
+        const url = `https://github.com{repoUser}/${repoName}/contents/${path}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Could not reach directory registry.");
+            const files = await response.json();
+            
+            let dirOutput = `Directory of ${promptSpan.innerText.replace('>','')}\\\n\n`;
+            let fileCount = 0;
+            let dirCount = 0;
+            
+            files.forEach(file => {
+                if (file.type === 'dir') {
+                    dirOutput += `[DIR]    ${file.name.padEnd(20)}\n`;
+                    dirCount++;
+                } else {
+                    dirOutput += `[FILE]   ${file.name.padEnd(20)}  (${file.size} bytes)\n`;
+                    fileCount++;
+                }
+            });
+            
+            dirOutput += `\n     ${fileCount} File(s)\n     ${dirCount} Dir(s)`;
+            printLine(dirOutput);
+        } catch (error) {
+            printLine("Error: Failed to dynamically stream files from GitHub repo folder. Verify connection.");
+        }
+    }
+
+    function printLine(text) {
+        outputDiv.innerHTML += text + "\n\n";
+    }
 </script>
 
 </body>
